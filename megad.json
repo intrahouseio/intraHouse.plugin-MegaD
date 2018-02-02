@@ -1,0 +1,101 @@
+{
+  "id": "megad",
+  "description": "Контроллер MegaD",
+  "gendevices": 0,
+  "module": "megad.js",
+  "params": [
+    {
+      "name": "host",
+      "note": "IP контроллера",
+      "type": "string",
+      "val": "127.0.0.1"
+    },
+    {
+      "name": "port",
+      "note": "Порт контроллера",
+      "type": "number",
+      "val": "80"
+    },
+    {
+      "name": "lport",
+      "note": "Слушающий порт на сервере",
+      "type": "number",
+      "val": "8081"
+    },
+    {
+      "name": "pwd",
+      "note": "Пароль",
+      "type": "string",
+      "val": "sec"
+    },
+    {
+      "name": "allreq",
+      "note": "Опрос состояния всех устройств",
+      "type": "string",
+      "val": "/%pwd%/cmd=all"
+    },
+    {
+      "name": "allreqsek",
+      "note": "Период опроса состояния всех устройств (сек), 0- только при старте",
+      "type": "number",
+      "val": "0"
+    }
+  ],
+  "genrules": {
+    "AI": {
+      "type": "200",
+      "cl": "SensorA"
+    },
+    "AO": {
+      "type": "520",
+      "cl": "ActorA"
+    },
+    "DI": {
+      "type": "100",
+      "cl": "SensorD"
+    },
+    "DO": {
+      "type": "500",
+      "cl": "ActorD"
+    }
+  },
+
+  "chpattern": [
+    {
+      "name": "desc",
+      "note": "Тип порта",
+      "type": "droplist",
+      "data":[
+        {"id":"DI", "name":"DI - Digital Input (IN)"},
+        {"id":"DO", "name":"DO - Digital Output(OUT)"},
+        {"id":"AI", "name":"AI - Analog Input (ADC, Dsen)"},
+        {"id":"AO", "name":"AO - Analog Output (PWM)"},
+        {"id":"Meter", "name":"Meter - (IN)"}
+      ]
+    },
+ 
+    {
+      "name": "reqsek",
+      "note": "Период опроса порта (сек), 0 - не опрашивать",
+      "type": "number"
+    },
+    {
+      "name": "req",
+      "note": "Строка запросв",
+      "type": "string",
+      "visible":"data.reqsek>0"
+    }
+  ],
+
+  "chdefault": {
+    "chan": "0",
+    "desc": "DI",
+    "reqsek": 1,
+    "req": "/%pwd%/?pt=%adr%&cmd=get",
+    "dn":""
+  },
+  
+  "actions": [
+    {}
+  ]
+}
