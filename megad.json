@@ -3,6 +3,7 @@
   "description": "Контроллер MegaD",
   "gendevices": 0,
   "module": "megad.js",
+  "restartOnChannelsChange": 1,
   "params": [
     {
       "name": "host",
@@ -36,7 +37,7 @@
     },
     {
       "name": "allreqsek",
-      "note": "Период опроса состояния всех устройств (сек), 0- только при старте",
+      "note": "Период опроса(сек), 0-только при старте",
       "type": "number",
       "val": "0"
     }
@@ -76,12 +77,12 @@
  
     {
       "name": "reqsek",
-      "note": "Период опроса порта (сек), 0 - не опрашивать",
+      "note": "Период опроса(сек), 0-не опрашивать",
       "type": "number"
     },
     {
       "name": "req",
-      "note": "Строка запросв",
+      "note": "Строка запроса состояния",
       "type": "string",
       "visible":"data.reqsek>0"
     }
@@ -95,6 +96,31 @@
     "dn":""
   },
   
+  "extrapattern": [
+    {
+      "name": "request",
+      "note": "Входящее от контроллера MegaD",
+      "type": "string"
+    },
+    {
+        "name": "response",
+        "note": "Передать в ответ",
+        "type": "string"
+    },
+    {
+        "name": "state",
+        "note": "Установить состояние каналов",
+        "type": "string"
+    }
+  ],
+
+  "extradefault": {
+    "request": "/megad?pt=1",
+    "response": "7:0",
+    "state":"1:1&7:0"
+  },
+  
+
   "actions": [
     {}
   ]

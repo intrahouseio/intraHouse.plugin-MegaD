@@ -450,7 +450,6 @@ function httpClientLog(dir, msg) {
 /**  cmd=all =>  ON;ON/0;OFF/5;OFF;254;15.5;temp:23.5/hum:40;200
  *    pt=1&cmd=get => 15.5
  **/
-
 function datahandler(body, url, adr) {
   let str = ut.parse(body, url, adr);
 
@@ -532,99 +531,12 @@ function datahandler(body, url, adr) {
 
 
 
-/** Загрузка массива исходящих запросов **/
-/*
-  function formChanReq(uobj) {
-	var hdevarr;
-	var filename = jbasepath+'/hdev'+unit+'.json';
-	
-		try {
-			// Первый запрос - общий опрос
-			if (uobj && uobj.allreq) {
-				reqarr.push({url:uobj.allreq, tick:(uobj.allreqsek || 0)});
-			}	
-
-			if (!fs.existsSync(filename)) throw { message:'File not found '+filename };
-		
-			hdevarr = hut.readFromFileSync( filename );
-		
-			if (!hdevarr || !util.isArray(hdevarr))  throw { message:'Invalid data: '+filename };
-			
-			for (var i=0; i<hdevarr.length; i++) {
-				if (hdevarr[i].props && util.isArray(hdevarr[i].props)) {
-				
-					for (var j=0; j<hdevarr[i].props.length; j++) {
-						if ( hdevarr[i].props[j].r && hdevarr[i].props[j].req && (hdevarr[i].props[j].reqsek>0) ) {
-							reqarr.push({url:hdevarr[i].props[j].req,  tick:hdevarr[i].props[j].reqsek, adr: String(hdevarr[i].devadr)});
-						}
-					}
-				}
-				
-				if (hdevarr[i].usescript) {
-					createFun(hdevarr[i].id, String(hdevarr[i].devadr));
-				}
-			}
-
-		} catch (e) {
-			traceMsg('ERROR: '+e.message);
-		}
-	}
-  */
-
-/** Создать функцию предобработки
- *   Считать из файла строку и создать функцию
- **/
-/*
-  function createFun(id, adr) {
-	var funstr;
-		
-		funstr = getUscriptStr(id);
-		traceMsg('Address '+adr+' ('+id+'). Loading script');
-		try {
-			if (!funstr) throw { message:'Script file missing or invalid!' };
-			
-			prefun[adr] = {depo:{}};
-			prefun[adr].fun = new Function ('val, depo', funstr );
-			
-		} catch (e) {
-			scriptError(e, adr);
-		}
-	}
-	
-	function scriptError(e, adr) {
-		prefun[adr]='';
-		traceMsg('Error: "'+e.message+'". Script disabled');
-	}
-	
-	function getUscriptStr(id) {
-	var filename, funstr, i,j;
-	
-		filename = scensource.getUscriptFileName( {link:'hdev'+unit, id:id} );
-		if (!filename) return;
-	
-		filename = basepath + '/uscript' +'/'+ filename+'.js';
-		if ( !fs.existsSync(filename) ) return;
-		funstr =  fs.readFileSync(filename, encoding='utf8');
-		if (!funstr)  return;
-		
-		// Взять только внутренность ф-и без {}
-		i = funstr.indexOf('{');
-		j = funstr.lastIndexOf('}');
-		
-		if ((i<=0) || (j<=0) || (i>j)) {
-			traceMsg('Not found { } in script!');
-			return;
-		}
-		return funstr.substring(i+1,j);
-	}
-  */
-
 /**  Передать команду	- возможно, на другую мегу  **/
-/*
+
   function sendHttpGet( auobj, amessage ) {
 	var req;
 	
-		amessage = hut.doSubstitute( amessage, {login:auobj.login, pwd:auobj.pwd} );			
+		amessage = ut.doSubstitute( amessage, {pwd:auobj.pwd} );			
 
 		traceMsg('localhost => '+auobj.host+':'+auobj.port+' HTTP GET '+amessage);
 
@@ -643,7 +555,7 @@ function datahandler(body, url, adr) {
 			traceMsg('localhost <= '+auobj.host+':'+auobj.port+' Error: '+e.code);
 		});
 	}
-	*/
+	
 
 /******************************** Входящие от backserver ****************************************************/
 
@@ -681,11 +593,18 @@ function parseMessageFromServer(message) {
   }
 }
 
+// data = [{id:adr, command:on/off/set, value:1}]
 function doAct(data) {
   if (!data || !util.isArray(data) || data.length <= 0) return;
 
   data.forEach(item => {
-    // sendCommandToSocket(item);
+    if (item.id && item.command) {
+        let value = (item.command == 'on') ? 1 : 0;
+        let message = '/%pwd%/?cmd='+item.id+':'+value;
+        sendHttpGet( unitParams, message );
+        // и на сервер передать что сделали
+        process.send({ type: "data", data:[{id:item.id, value}] });
+    }    
   });
 }
 
@@ -701,13 +620,12 @@ function paramResponse(params) {
 
 // Сервер прислал каналы - сформировать свои структуры
 function configResponse(config) {
-  traceMsg("config=" + util.inspect(config));
   if (typeof config == "object") {
     if (!util.isArray(config)) config = [config];
 
     // Сформировать массив исходящих запросов reqarr
     reqarr = prepare.prepareOutReq(unitParams, config);
-    // traceMsg("reqarr=" + util.inspect(reqarr));
+
     // Подготовить массив таймеров для исходящих запросов
     formTimers();
   }
