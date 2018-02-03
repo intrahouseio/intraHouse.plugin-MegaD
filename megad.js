@@ -11,7 +11,7 @@ const qr = require("querystring");
 const prepare = require("./lib/prepare");
 const ut = require("./lib/utils");
 
-// id плагина  - megad1
+// id плагина  - megadx
 const unitId = process.argv[2];
 
 // Параметры логирования
@@ -35,24 +35,39 @@ var counters = {}; // Обработка, связанная с длинными
 
 let outReqInFetch = 0; // Состояние связи
 let step = 0; // Состояния плагина
+
+traceMsg("", "start");
+traceMsg("MegaD plugin has started.", "start");
 next();
 
 function next() {
   switch (step) {
-    case 0: // Запрос на получение параметров
+    case 0:
+      // Запрос на получение параметров
       getTable("params");
       step = 1;
       break;
 
-    case 1: // Запрос на получение каналов
-      getTable("config");
+    case 1:
+      if (unitParams.lport) {
+        // Запрос на получение списка входящих запросов
+        getTable("extra");
+        // Запуск слушающего сервера.
+        startListeningServer();
+      }
       step = 2;
       break;
 
     case 2:
-      // Запуск Основного цикла опроса http-клиента
-      setInterval( runOutReq, 200);
+      // Запрос на получение каналов для опроса
+      getTable("config");
       step = 3;
+      break;
+
+    case 3:
+      // Запуск Основного цикла опроса
+      setInterval(runOutReq, 200);
+      step = 4;
       break;
 
     default:
@@ -63,99 +78,60 @@ function getTable(name) {
   process.send({ type: "get", tablename: name + "/" + unitId });
 }
 
-/*
+function startListeningServer() {
+  http
+    .createServer(onRequest)
+    .listen(unitParams.lport)
+    .on("error", e => {
+      let msg =
+        e.code == "EADDRINUSE" ? "Address in use" : +e.code + " Stopped.";
+      traceMsg(
+        `HTTP server port: ${unitParams.lport} error ${e.errno}. ${msg}`
+      );
+      process.exit(1);
+    });
+  traceMsg("Listening localhost:" + unitParams.lport, "start");
+}
 
-	try {
-		if (!unit || !basepath)    throw { message:'Missing plugin parameters!!'};
-		
-		// Получить список всех Мег, чтобы перенаправлять запрос: {MG2:{}, MG3:{}}
-		megas = hut.getObjFromArray( ihdb.findObjInFile( jbasepath+'/units.json' , {unitkind:'MGD' }, true ), 'num');
-
-		if (!megas)     throw { message:'Not found units with unitkind=MGD!'};
-		
-		// Выбрать основную Meгу:uobj 
-		uobj = megas[unit];
-		if (!uobj)      throw { message:'Not found unit:'+unit};
-		if (!uobj.host) throw { message:'Missing IP-address'};
-		host = uobj.host+ ((uobj.port) ? (':'+uobj.port) : '');
-
-		// Логгирование в целях отладки
-		if (uobj.log) {
-			plogger = new plainlogger.Logger({path:basepath, name:unit, sizekb:256, count:5 });
-		}	
-		
-		traceMsg('', 'start');			
-		traceMsg('MegaD plugin has started.', 'start');			
-		
-		// Http сервер. Если есть порт, который надо слушать - запустить 
-		if (uobj.lport) {
-			tableMReq = formTableMReq();
-			server = http.createServer(onRequest).listen(uobj.lport); 
-			server.on('error', function(e) {
-				traceMsg('HTTP server port:'+ uobj.lport+' error '+e.errno+'. '+((e.code == 'EADDRINUSE')?('Address in use'):+e.code+' Stopped.'));
-				process.exit(1);
-			});
-			traceMsg('Listening localhost:'+uobj.lport, 'start');		
-		}
-
-		
-	} catch (e) {	
-		traceMsg( e.message+' Stopped.');
-		process.exit(1);
-	}
-	
-*/
 /**
  *  Интервальная функция выполняет запросы по массиву timers.
  *   timers упорядочен по .qtime
  *   В каждом цикле проверяется только первый элемент
  **/
-
 function runOutReq() {
-  var curtime;
-
   if (outReqInFetch) {
     //traceMsg('Socket IN FETCH.');
     return;
   }
 
   if (timers.length > 0) {
-    curtime = new Date().getTime();
+    let curtime = new Date().getTime();
     if (timers[0].qtime <= curtime) {
-      try {
-        var item = timers.shift();
-        resetTimer(item, curtime);
-        nextHttpGet(reqarr[item.index].url, reqarr[item.index].adr);
-      } catch (e) {
-        traceMsg(
-          "Exception: " +
-            e.message +
-            ". get-function for " +
-            reqarr[item.index].url
-        );
-      }
+      var item = timers.shift();
+      resetTimer(item, curtime);
+      nextHttpGet(reqarr[item.index].url, reqarr[item.index].adr);
     }
   }
 }
 
 /** Формирование таймеров с нуля **/
 function formTimers() {
-    var curtime = new Date().getTime();
-  
-    timers = [];
-    for (var i = 0; i < reqarr.length; i++) {
-      if (i == 0) {
-        timers.push({ index: i, qtime: curtime });
-      } else {
-        // нужно вставить с учетом сортировки, чтобы время было через интервал сразу
-        resetTimer({ index: i, qtime: 0 }, curtime);
-      }
+  let curtime = new Date().getTime();
+
+  timers = [];
+  for (var i = 0; i < reqarr.length; i++) {
+    if (i == 0) {
+      timers.push({ index: i, qtime: curtime });
+    } else {
+      // нужно вставить с учетом сортировки, чтобы время было через интервал сразу
+      resetTimer({ index: i, qtime: 0 }, curtime);
     }
   }
-  
+}
+
 /** Включить запрос в массив таймеров снова, если есть интервал опроса 	**/
 function resetTimer(item, curtime) {
-  var i;
+  let i;
 
   if (item && item.index < reqarr.length && reqarr[item.index].tick > 0) {
     item.qtime = curtime + reqarr[item.index].tick * 1000;
@@ -173,7 +149,7 @@ function resetTimer(item, curtime) {
 
 /** Заменить запрос в массиве таймеров - поменяли интервал опроса 	**/
 function replaceTimer(adr, reqsek) {
-  var index;
+  let index;
 
   index = getIndexForAdrInReqarr(adr); // Найти index для адреса adr
   if (index == undefined) return;
@@ -205,189 +181,160 @@ function getIndexForAdrInReqarr(adr) {
       return i;
     }
   }
-  console.log("getIndexForAdrInReqarr: not found adr=" + adr + " in reqarr");
 }
 
 /*********************************************** Обработка входящих http-запросов. *********************************/
-/*
-  function onRequest(request, response) {
-	var mreqobj, answer='', ip='', qobj;
-		
-		ip = hut.getHttpReqClientIP(request);
-		traceMsg( ip+' => localhost:'+uobj.lport+' HTTP GET '+request.url , 'server');		
-		
-		//answer = processMReq(request.url);
-		qobj = url.parse(request.url, true).query;
-		// Системный запрос st=1
-		if (qobj.st == 1) {
-			formTimers();
-		} 
-		
-		mreqobj = findMReq(url.parse(request.url).pathname, qobj);
-		
-		// Если такой запрос не предусмотрен - но ответить надо?? Или можно не отвечать??
-		if ( mreqobj) {
-			setStates( mreqobj.state, qobj );	
-			answer = mreqobj.response || '';
-		}	
-		
-		// Ответ на запрос, возможно, пустой
-		traceMsg( ip+' <= localhost:'+uobj.lport+' ' + answer, 'server');		
-		response.writeHead(200, {"Content-Type": "text/html; charset=utf-8"});
-		response.end(answer);
-		response.on('error', function(e) {
-			traceMsg( ip+' <= localhost:'+uobj.lport+' ERROR:' + e.code, 'server');		
-		});
-		
-		// Обработать redirect на другие контроллеры
-		if ( mreqobj && mreqobj.props ) {
-			for (var i=0; i<mreqobj.props.length; i++) {
-				if (sendOtherReq(mreqobj.props[i])) {
-					// И устройства установить для другой Megи
-					if (mreqobj.props[i].state) setStates(mreqobj.props[i].state, qobj, mreqobj.props[i].unit );	
-				}
-			}
-		}	
-	}	
 
-	*/
-/** Найти запрос в таблице запросов - получить объект: {num:3, q=1, repsonse:'7:2', queryprops:{m:1}, state:'', props:[]} 	**/
-/*
-	function sendOtherReq( sobj) {
-		if (!sobj) return;
-		try {
-			if (!sobj.unit) throw {message:'Empty "unit" property for redirect.'};
-			if (!sobj.req)  throw {message:'Empty "request" property for redirect.'};
-			if (!megas[sobj.unit] ) throw {message:'Not found unit '+sobj.unit+' for redirect.'};
-				
-			traceMsg('Redirect to '+sobj.unit, 'server');
-			sendHttpGet( megas[sobj.unit], sobj.req);
-			return true;
-			
-		} catch (e) {
-			traceMsg('Not found unit '+sobj.unit+' for redirect.');
-		}
-	}
-	*/
+function onRequest(request, response) {
+  let ip = ut.getHttpReqClientIP(request);
+  httpServerLog(ip, "=>", "HTTP GET " + request.url);
 
-/** Поиск по таблице запросов **/
-/*
-  function findMReq(pathname, query) {
-	var fobj, id;
-		
-		if (pathname && query && tableMReq[pathname]) {
-		
-			id = (query.pt != undefined) ? query.pt : 'U';
-			if (tableMReq[pathname][id] && util.isArray(tableMReq[pathname][id])) {
-		
-				for (var i=0; i<tableMReq[pathname][id].length; i++) {
-					if (isSuitable(tableMReq[pathname][id][i].queryprops, query))  return tableMReq[pathname][id][i];
-				}
-			}
-		}
-	}
-	
-	
-	function isSuitable(patobj, qobj) {
-		if (!patobj || !qobj) return;
-		
-		for (var prop in patobj) {
-			if (patobj[prop] == '*') {
-				if (qobj[prop] == undefined) return; 
-			} else {
-				if (qobj[prop] != patobj[prop]) return;
-			}	
-		}
-		return true;
-	}
-*/
+  let qobj = url.parse(request.url, true).query;
+
+  // Системный запрос st=1 - сформировать список таймеров с нуля
+  if (qobj.st == 1) {
+    formTimers();
+  }
+
+  let mreqobj = findMReq(url.parse(request.url).pathname, qobj);
+  let answer = "";
+
+  // Если такой запрос не предусмотрен - но ответить надо?? Или можно не отвечать??
+  if (mreqobj) {
+    answer = mreqobj.response || "";
+
+    // Состояния каналов - установить, передать наверх
+    processSendData(setStates(mreqobj.state, qobj));
+  }
+
+  // Ответ на запрос, возможно, пустой
+  httpServerLog(ip, "<=", answer);
+  response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+  response.end(answer);
+  response.on("error", e => {
+    httpServerLog(ip, "<=", " ERROR:" + e.code);
+  });
+}
+
+function httpServerLog(ip, dir, msg) {
+  traceMsg(`${ip} ${dir} localhost:${unitParams.lport} ${msg}`, "server");
+}
+
+
+/** Найти запрос в таблице запросов - получить объект: {num:3, q=1, repsonse:'7:2', queryprops:{m:1}, state:'', props:[]} 	
+*
+**/
+function findMReq(pathname, query) {
+  let id;
+
+  if (tableMReq && pathname && query && tableMReq[pathname]) {
+    id = query.pt != undefined ? query.pt : "U";
+    if (tableMReq[pathname][id] && util.isArray(tableMReq[pathname][id])) {
+      for (var i = 0; i < tableMReq[pathname][id].length; i++) {
+        if (isSuitable(tableMReq[pathname][id][i].queryprops, query))
+          return tableMReq[pathname][id][i];
+      }
+    }
+  }
+}
+
+function isSuitable(patobj, qobj) {
+  if (!patobj || !qobj) return;
+
+  for (var prop in patobj) {
+    if (patobj[prop] == "*") {
+      if (qobj[prop] == undefined) return;
+    } else {
+      if (qobj[prop] != patobj[prop]) return;
+    }
+  }
+  return true;
+}
 
 /** Установить значения состояния 	**/
-/*
-  function setStates(ststr, qobj, redirectunit) {
-	var sarr, xunit, result='';
-		
-		if (!ststr) return;
-		
-		// 2=ON&3=OFF&4=*&5=%v%
-		sarr = ststr.split('&');
-		
-		if (!sarr || !util.isArray(sarr)) return;
-			
-		for (var i=0; i<sarr.length; i++) {
-			if (sarr[i]) {
-				result = result + formOneState(sarr[i]);
-			}	
-		}
-		
-		// Предварительно их надо обработать, возможно, они зависят от входящих значений!! 7=%val%
-		// Или от предыдущего состояния - например, 7:2 - это toggle? - это уже должен делать procMGD???
-		xunit = (redirectunit) ? redirectunit : unit;
-		traceMsg(xunit+'?'+result, 'server');
-		process.send(xunit+'?'+result);
-	
-	
-		function formOneState( str ) {
-		var arr, num, val, res='';
-			if (str) {
-				arr = str.split('=');
-				num = Number(arr[0]);
-				if ((num != undefined) && (arr[1])) {
 
-					val = formVal(arr[1]);
-					if (val == 'CNT') {
-						if (skipCntVal()) return '';
-					}
-					
-					res = String(num)+'='+String(val)+'&';
-				}
-			}
-			return res;
-		}
-		
-		
-		// М.б. сообщение при длинном нажатии - берем параметр cnt
-		function skipCntVal( num ) {
-			if ( counters[num] && (counters[num] == qobj.cnt) ) return true; 
-			counters[num] = qobj.cnt;
-		}
-		
-		function formVal( v ) {
-		var aname;
-			if (v.substr(0,2) == 'ON') return 1; 
-			if (v.substr(0,2) == 'OF') return 0; 
-			
-			if (v.substr(0,1) == '%') {
-				aname = v.substr(1, v.length-2);
-				if (qobj && aname && (qobj[aname] != undefined)) {
-					return 	qobj[aname];
-				}	
-			}
-			// Любое другое значение - просто отдать
-			return v;
-		}
-	}
-	*/
+function setStates(ststr, qobj, redirectunit) {
+  var sarr,
+    xunit,
+    result = "";
 
+  if (!ststr) return;
+
+  // 2=ON&3=OFF&4=*&5=%v%
+  sarr = ststr.split("&");
+
+  if (!sarr || !util.isArray(sarr)) return;
+
+  for (var i = 0; i < sarr.length; i++) {
+    if (sarr[i]) {
+      result = result + formOneState(sarr[i]);
+    }
+  }
+
+  // Предварительно их надо обработать, возможно, они зависят от входящих значений!! 7=%val%
+  // Или от предыдущего состояния - например, 7:2 - это toggle? - это уже должен делать procMGD???
+  //  Результат - строка adr=val&
+  return result;
+
+  function formOneState(str) {
+    var arr,
+      num,
+      val,
+      res = "";
+    if (str) {
+      arr = str.split("=");
+      num = Number(arr[0]);
+      if (num != undefined && arr[1]) {
+        val = formVal(arr[1]);
+        if (val == "CNT") {
+          if (skipCntVal()) return "";
+        }
+
+        res = String(num) + "=" + String(val) + "&";
+      }
+    }
+    return res;
+  }
+
+  // М.б. сообщение при длинном нажатии - берем параметр cnt
+  function skipCntVal(num) {
+    if (counters[num] && counters[num] == qobj.cnt) return true;
+    counters[num] = qobj.cnt;
+  }
+
+  function formVal(v) {
+    var aname;
+    if (v.substr(0, 2) == "ON") return 1;
+    if (v.substr(0, 2) == "OF") return 0;
+
+    if (v.substr(0, 1) == "%") {
+      aname = v.substr(1, v.length - 2);
+      if (qobj && aname && qobj[aname] != undefined) {
+        return qobj[aname];
+      }
+    }
+    // Любое другое значение - просто отдать
+    return v;
+  }
+}
+
+/** Клиент http - опрашивает по таймерам
+ *  cmd=all =>  ON;ON/0;OFF/5;OFF;254;15.5;temp:23.5/hum:40;200
+ *  pt=1&cmd=get => 15.5
+ **/
 function nextHttpGet(url, adr) {
   const host = unitParams.host;
   const port = Number(unitParams.port) || 80;
 
   traceMsg("", "client");
-  httpClientLog("=>", "HTTP GET " + url);
+  httpClientLog("=>", unitParams.host, "HTTP GET " + url);
   outReqInFetch = 1;
 
   const req = http
-    .get({ host: host, port: port, path: url, agent: false }, function(res) {
-      let body = "";
-      httpClientLog(
-        "<=",
-        "statusCode=" +
-          res.statusCode +
-          " contentType=" +
-          res.headers["content-type"]
-      );
+    .get({ host: host, port: port, path: url, agent: false }, res => {
+      httpClientLog("<=", unitParams.host, resStatus(res));
 
+      let body = "";
       if (res.statusCode != 200) {
         res.resume();
         setConnectionEnding();
@@ -400,8 +347,10 @@ function nextHttpGet(url, adr) {
 
       res.on("end", function() {
         setConnectionEnding();
-        traceMsg(" body: " + String(body));
-        datahandler(body, url, adr ? ut.portNumber(adr) : "");
+        traceMsg(" body: " + String(body), "client");
+        processSendData(
+          ut.parse(String(body), url, adr ? ut.portNumber(adr) : "")
+        );
       });
     })
     .on("error", function(e) {
@@ -413,7 +362,7 @@ function nextHttpGet(url, adr) {
   req.on("socket", function(socket) {
     socket.setTimeout(30000);
     socket.on("timeout", function() {
-      httpClientLog("<=>", "Socket timed out - abort!");
+      httpClientLog("<=>", unitParams.host, "Socket timed out - abort!");
       req.abort();
       setConnectionEnding();
     });
@@ -429,136 +378,78 @@ function setConnectionEnding() {
 }
 
 function errorhandler(e) {
-  let mess = "";
+  let mess = "Error " + e.code + ". ";
   let result = 3;
 
   if (e.code == "ECONNREFUSED") {
-    mess = "Connection error";
+    mess += " Connection error. ";
     result = 2;
   }
-  httpClientLog("<=", " Error " + e.code + ". " + mess + " Stopped.");
+  httpClientLog( "<=", unitParams.host, mess + " Stopped.");
   process.exit(result);
 }
 
-function httpClientLog(dir, msg) {
-  traceMsg("localhost " + dir + " " + unitParams.host + " " + msg, "client");
-}
+function processSendData(payload) {
+  if (!payload) return;
 
-
-/********************************   Функции обработки Response  **********************************/
-
-/**  cmd=all =>  ON;ON/0;OFF/5;OFF;254;15.5;temp:23.5/hum:40;200
- *    pt=1&cmd=get => 15.5
- **/
-function datahandler(body, url, adr) {
-  let str = ut.parse(body, url, adr);
-
-  // Получаем строку adr=val&adr=val&...
-  traceMsg(" parse: " + str);
-
-  let robj = qr.parse(str);
-  // Получаем объект {adr:val, ..} => [{id:'1', value:'1'}]
-  let data = Object.keys(robj).map(adr => ({id:adr, value:robj[adr]}));
-
-  // Результат в виде {type:data, data:[{id:'1_1', value:1}]}
+  let data;
+  if (util.isArray(payload)) {
+    data = payload;
+  } else if (typeof payload == "string") {
+    // Получаем строку adr=val&adr=val&...
+    let robj = qr.parse(payload);
+    // Преобразуем {adr:val, ..} => [{id:'1', value:'1'}]
+    if (robj) {
+      data = Object.keys(robj).map(adr => ({ id: adr, value: robj[adr] }));
+    }
+  }
+  if (!data) return;
+  traceMsg("send " + util.inspect(data));
   process.send({ type: "data", data });
 }
 
-/*********************   Подготовительные операции ******************************/
-
-/** Формирование таблицы входящих запросов **/
-/*
-  function formTableMReq() {
-	var id, tbl={}, index=-1, pathname;
-	var filename = jbasepath+'/hreq'+unit+'.json';
-	var reqarr;
-		
-		// Если файла запросов нет - создать строку для примера и сразу ее загрузить??
-		if (fs.existsSync(filename)) {
-			reqarr = hut.readFromFileSync( filename );
-		} 
-
-		if (!reqarr || !util.isArray(reqarr)) {
-			reqarr = [{"num":"1","request":"/megad?pt=1","response":"7:0","state":"1=ON&7=OFF","name":""}];
-			fs.writeFileSync(filename, JSON.stringify(reqarr) ,encoding='utf8');
-		}	
-		
-		for (var i=0; i<reqarr.length; i++) {
-
-			// сформировать объект
-			onereq = getOneReqObj(reqarr[i]);
-			if (!onereq) continue;
-			
-			// Найти место для вставки и вставить в таблицу
-			pathname = onereq.pathname;
-
-			if (!tbl[pathname]) tbl[pathname]={};
-			
-			id = (onereq.queryprops.pt != undefined) ? onereq.queryprops.pt : 'U';
-			
-			if (!tbl[pathname][id]) tbl[pathname][id]=[];
-			
-			index=-1;
-			for (var j=0; j<tbl[pathname][id].length; j++) {
-				if (tbl[pathname][id][j].q < onereq.q) {
-					index = j;	
-					break;
-				}
-			}
-			
-			if (index < 0) {
-				tbl[pathname][id].push(onereq);
-			} else {
-				tbl[pathname][id].splice(j, 0, onereq);
-			}			
-		}
-		return tbl;
-		
-		
-		function getOneReqObj(item) {
-		var oneobj;
-		
-			if (!item || !item.num || !item.request) return;
-
-			oneobj = hut.clone(item);
-			oneobj.pathname = url.parse(item.request).pathname;
-			oneobj.queryprops    = url.parse(item.request, true).query;
-			oneobj.q = hut.objPropCount(oneobj.queryprops);
-			return oneobj;
-		}
-	}
-*/
-
-
-
 /**  Передать команду	- возможно, на другую мегу  **/
 
-  function sendHttpGet( auobj, amessage ) {
-	var req;
-	
-		amessage = ut.doSubstitute( amessage, {pwd:auobj.pwd} );			
+function sendHttpGet(auobj, amessage) {
+  amessage = ut.doSubstitute(amessage, { pwd: auobj.pwd });
 
-		traceMsg('localhost => '+auobj.host+':'+auobj.port+' HTTP GET '+amessage);
+  httpClientLog("=>", auobj.host + ":" + auobj.port, "HTTP GET " + amessage);
 
-		req = http.get( {host:auobj.host, port:auobj.port, path:amessage, agent:false},  function(res) {
-		var body = '';
-			traceMsg('localhost <= '+auobj.host+':'+auobj.port+' response: statusCode='+ res.statusCode+' contentType = '+res.headers['content-type'], 'socket');
-				
-			res.on('data', function(chunk) {
-				body += chunk;
-			});
+  http
+    .get(
+      { host: auobj.host, port: auobj.port, path: amessage, agent: false },
+      res => {
+        let body = "";
+        httpClientLog("<=", auobj.host + ":" + auobj.port, resStatus(res));
 
-			res.on('end', function() {
-				traceMsg('localhost <= '+auobj.host+':'+auobj.port+' HTTP '+ body, 'client');
-			});
-		}).on('error', function(e) {
-			traceMsg('localhost <= '+auobj.host+':'+auobj.port+' Error: '+e.code);
-		});
-	}
-	
+        res.on("data", function(chunk) {
+          body += chunk;
+        });
 
-/******************************** Входящие от backserver ****************************************************/
+        res.on("end", function() {
+          httpClientLog("<=", auobj.host + ":" + auobj.port, " HTTP " + body);
+        });
+      }
+    )
+    .on("error", function(e) {
+      httpClientLog("<=", auobj.host + ":" + auobj.port, " Error: " + e.code);
+    });
+}
 
+function httpClientLog(dir, host, msg) {
+  traceMsg("localhost " + dir + " " + host + " " + msg, "client");
+}
+
+function resStatus(res) {
+  return (
+    "response: statusCode=" +
+    res.statusCode +
+    " contentType = " +
+    res.headers["content-type"]
+  );
+}
+
+/******************************** Входящие от IH ****************************************************/
 process.on("message", function(message) {
   if (!message) return;
 
@@ -567,7 +458,6 @@ process.on("message", function(message) {
       traceMsg("Stopped by server SIGTERM.");
       process.exit(0);
     }
-    // sendHttpGet( uobj, message );
   }
 
   if (typeof message == "object") {
@@ -584,6 +474,7 @@ function parseMessageFromServer(message) {
     case "get":
       if (message.params) paramResponse(message.params);
       if (message.config) configResponse(message.config);
+      if (message.extra) extraResponse(message.extra);
       break;
 
     case "act":
@@ -599,12 +490,12 @@ function doAct(data) {
 
   data.forEach(item => {
     if (item.id && item.command) {
-        let value = (item.command == 'on') ? 1 : 0;
-        let message = '/%pwd%/?cmd='+item.id+':'+value;
-        sendHttpGet( unitParams, message );
-        // и на сервер передать что сделали
-        process.send({ type: "data", data:[{id:item.id, value}] });
-    }    
+      let value = item.command == "on" ? 1 : 0;
+      let message = "/%pwd%/?cmd=" + item.id + ":" + value;
+      sendHttpGet(unitParams, message);
+      // и на сервер передать что сделали
+      processSendData([{ id: item.id, value }]);
+    }
   });
 }
 
@@ -629,6 +520,12 @@ function configResponse(config) {
     // Подготовить массив таймеров для исходящих запросов
     formTimers();
   }
+  next();
+}
+
+// Сервер прислал список входящих запросов от контроллера
+function extraResponse(extra) {
+  tableMReq = prepare.formTableMReq(extra);
   next();
 }
 

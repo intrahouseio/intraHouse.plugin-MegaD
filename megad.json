@@ -58,7 +58,8 @@
     "DO": {
       "type": "500",
       "cl": "ActorD"
-    }
+    },
+    "Meter": { "cl": "Meter" } 
   },
 
   "chpattern": [
