@@ -4,45 +4,53 @@
 const util = require("util");
 
 module.exports = {
-  // {type:data, data:[{id:xx, value:'TG/CNT'}]}
+  // readTele - перехват сообщений типа type:data и обработка
+  // {type:data, data:[{id:xx, value:0/1/255/TG/CNT}]}
+  // Если устройства нет - исключаем
+  // Число для счетчика - исключаем
   readTele: function(tele, readMap, houser) {
-    if (tele && typeof tele == "object" && tele.type == "data" && tele.data) {
-      if (util.isArray(tele.data)) {
-        tele.data.forEach(item => {
-          if (item.value == "TG" || item.value == "TOGGLE") {
-            let value = toggleIt(getDevice(item));
-            if (value != undefined) item.value = value;
-          }
-          if (item.value == "CNT" || item.value == "COUNT") {
-            let value = countIt(getDevice(item));
-            if (value != undefined) item.value = value;
-          }
-        });
-      }
+    return tele && typeof tele == "object" && tele.type == "data" && tele.data
+      ? { type: "data", data: processData() }
+      : tele;
+
+    function processData() {
+      if (!util.isArray(tele.data)) return [];
+
+      return tele.data
+        .map(item => processOne(item))
+        .filter(item => typeof item == "object");
     }
-    return tele;
+
+    function processOne(item) {
+      let dobj = getDevice(item);
+      if (!dobj) return "";
+
+      // Если число - то счетчик нужно исключить, т к в общем опросе он передает 1!
+      if (dobj.cl == "Meter") {
+        if (item.value == "CNT" || item.value == "COUNT") {
+          item.value = countIt(dobj);
+        } else delete item.value;
+      } else if (item.value == "TG" || item.value == "TOGGLE") {
+        item.value = toggleIt(dobj);
+      }
+      return item.value != undefined ? item : "";
+    }
 
     function getDevice(item) {
       if (item.id && readMap.has(item.id)) {
         let dn = readMap.get(item.id).dn;
-        if (!dn) return;
-
-        return houser.getDevobj(dn);
+        return dn ? houser.getDevobj(dn) : "";
       }
     }
 
     // Переключить состояние устройства, а мега сама переключит
     function toggleIt(dobj) {
-      if (dobj && (dobj.cl == "ActorD" || dobj.cl == "ActorA")) {
-        if (dobj.cl == "ActorD") {
-          return dobj.dval == 1 ? "0" : "1";
-        }
-
-        if (dobj.dval > 0) {
-          // Дискретное состояние аналогового канала
-          return "0";
-        }
-        return dobj.defval || 100;
+      if (dobj && dobj.cl == "ActorD") {
+        return dobj.dval == 1 ? "0" : "1";
+      }
+      if (dobj && dobj.cl == "ActorA") {
+        // Анализируем дискретное состояние аналогового канала, устанавливаем aval
+        return dobj.dval > 0 ? "0" : dobj.defval || 100;
       }
     }
 

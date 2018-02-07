@@ -33,7 +33,7 @@
       "name": "allreq",
       "note": "Опрос состояния всех устройств",
       "type": "string",
-      "val": "/%pwd%/cmd=all"
+      "val": "/%pwd%/?cmd=all"
     },
     {
       "name": "allreqsek",
