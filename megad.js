@@ -68,7 +68,7 @@ function runOutReq() {
   if (item) {
     let url = plugin.reqarr[item.index].url;
     let adr = plugin.reqarr[item.index].adr;
-    console.log("httpclient " + url);
+  
     httpclient.httpGet(
       {
         url,
@@ -90,12 +90,9 @@ function runOutReq() {
 /******************************** Входящие от IH ****************************************************/
 process.on("message", function(message) {
   if (!message) return;
-  console.log("IH message " + util.inspect(message));
+
   if (typeof message == "string") {
-    if (message == "SIGTERM") {
-      logger.log("Stopped by server SIGTERM.");
-      process.exit(0);
-    }
+    if (message == "SIGTERM")  process.exit(0);
   }
 
   if (typeof message == "object") {
@@ -157,6 +154,5 @@ function doAct(data) {
 
 process.on("uncaughtException", function(err) {
   var text = "ERR (uncaughtException): " + util.inspect(err);
-  console.log(text);
   logger.log(text);
 });
