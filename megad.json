@@ -86,7 +86,13 @@
       "note": "Строка запроса состояния",
       "type": "string",
       "visible":"data.reqsek>0"
-    }
+    },
+    {
+        "name": "weight",
+        "note": "Вес импульса счетчика",
+        "type": "string",
+        "visible":"data.desc==\"Meter\""
+      }
   ],
 
   "chdefault": {
@@ -94,7 +100,8 @@
     "desc": "DI",
     "reqsek": 1,
     "req": "/%pwd%/?pt=%adr%&cmd=get",
-    "dn":""
+    "dn":"",
+    "weight":1
   },
   
   "extrapattern": [

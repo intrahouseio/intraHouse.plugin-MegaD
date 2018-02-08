@@ -28,7 +28,7 @@ module.exports = {
       // Если число - то счетчик нужно исключить, т к в общем опросе он передает 1!
       if (dobj.cl == "Meter") {
         if (item.value == "CNT" || item.value == "COUNT") {
-          item.value = countIt(dobj);
+          item.value = countIt(dobj, readMap.get(item.id));
         } else delete item.value;
       } else if (item.value == "TG" || item.value == "TOGGLE") {
         item.value = toggleIt(dobj);
@@ -54,11 +54,11 @@ module.exports = {
       }
     }
 
-    function countIt(dobj) {
-      if (dobj && dobj.cl == "Meter") {
-        // return Number(dobj.aval) + 1 * koef;
-        if (isNaN(dobj.aval)) return 1;
-        return Number(dobj.aval) + 1;
+    function countIt(dobj, readMapItem) {
+     
+        let weight = (readMapItem.weight > 0) ? readMapItem.weight : 1;
+        let aval = (isNaN(dobj.aval)) ? 1 : Number(dobj.aval);
+        return aval + 1*weight;
       }
     }
   }
