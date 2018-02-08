@@ -98,7 +98,7 @@
   "chdefault": {
     "chan": "0",
     "desc": "DI",
-    "reqsek": 1,
+    "reqsek": 0,
     "req": "/%pwd%/?pt=%adr%&cmd=get",
     "dn":"",
     "weight":1
@@ -124,8 +124,8 @@
 
   "extradefault": {
     "request": "/megad?pt=1",
-    "response": "7:0",
-    "state":"1:1&7:0"
+    "response": "7:2",
+    "state":"1=ON&7=TOGGLE"
   },
   
 

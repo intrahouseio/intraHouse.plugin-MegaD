@@ -4,6 +4,7 @@
 const util = require("util");
 
 module.exports = {
+    
   // readTele - перехват сообщений типа type:data и обработка
   // {type:data, data:[{id:xx, value:0/1/255/TG/CNT}]}
   // Если устройства нет - исключаем
@@ -55,11 +56,9 @@ module.exports = {
     }
 
     function countIt(dobj, readMapItem) {
-     
-        let weight = (readMapItem.weight > 0) ? readMapItem.weight : 1;
-        let aval = (isNaN(dobj.aval)) ? 1 : Number(dobj.aval);
-        return aval + 1*weight;
-      }
+      let weight = readMapItem.weight > 0 ? readMapItem.weight : 1;
+      let aval = isNaN(dobj.aval) ? 1 : Number(dobj.aval);
+      return aval + 1 * weight;
     }
   }
 };
