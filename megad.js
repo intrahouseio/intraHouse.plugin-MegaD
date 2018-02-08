@@ -131,14 +131,14 @@ function parseMessageFromServer(message) {
 // data = [{id:adr, command:on/off/set, value:1}]
 function doAct(data) {
   if (!data || !util.isArray(data) || data.length <= 0) return;
-
+  
   data.forEach(item => {
     if (item.id && item.command) {
       let value = item.command == "on" ? 1 : 0;
 
       httpclient.httpGet(
         {
-          url: "/%pwd%/?cmd=" + item.id + ":" + value,
+          url: plugin.doCmd + item.id + ":" + value,
           host: plugin.params.host,
           port: plugin.params.port,
           stopOnError: false
