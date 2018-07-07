@@ -130,7 +130,8 @@
   "extradefault": {
     "request": "/megad?pt=1",
     "response": "7:2",
-    "state":"1=ON&7=TOGGLE"
+    "state":"1=ON&7=TOGGLE",
+    "fullurl":""
   },
   
 
