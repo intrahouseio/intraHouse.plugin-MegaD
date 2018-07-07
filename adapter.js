@@ -4,12 +4,11 @@
 const util = require("util");
 
 module.exports = {
-    
   // readTele - перехват сообщений типа type:data и обработка
   // {type:data, data:[{id:xx, value:0/1/255/TG/CNT}]}
   // Если устройства нет - исключаем
   // Число для счетчика - исключаем
-  readTele: function(tele, readMap, houser) {
+  readTele(tele, readMap, houser) {
     return tele && typeof tele == "object" && tele.type == "data" && tele.data
       ? { type: "data", data: processData() }
       : tele;
@@ -60,5 +59,5 @@ module.exports = {
       let aval = isNaN(dobj.aval) ? 1 : Number(dobj.aval);
       return aval + 1 * weight;
     }
-  }
+    }
 };

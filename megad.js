@@ -12,9 +12,10 @@ const httpclient = require("./lib/httpclient");
 const logger = require("./lib/logger");
 
 const plugin = require("./lib/plugin");
-plugin.unitId = process.argv[2];
 
 let step = 0;
+plugin.unitId = process.argv[2];
+
 
 logger.log("MegaD plugin has started.", "start");
 next();
@@ -68,7 +69,7 @@ function runOutReq() {
   if (item) {
     let url = plugin.reqarr[item.index].url;
     let adr = plugin.reqarr[item.index].adr;
-  
+
     httpclient.httpGet(
       {
         url,
@@ -87,12 +88,12 @@ function runOutReq() {
   }
 }
 
-/******************************** Входящие от IH ****************************************************/
-process.on("message", function(message) {
+/** ****************************** Входящие от IH ************************************/
+process.on("message", (message) => {
   if (!message) return;
 
   if (typeof message == "string") {
-    if (message == "SIGTERM")  process.exit(0);
+    if (message == "SIGTERM") process.exit(0);
   }
 
   if (typeof message == "object") {
@@ -131,7 +132,7 @@ function parseMessageFromServer(message) {
 // data = [{id:adr, command:on/off/set, value:1}]
 function doAct(data) {
   if (!data || !util.isArray(data) || data.length <= 0) return;
-  
+
   data.forEach(item => {
     if (item.id && item.command) {
       let value = item.command == "on" ? 1 : 0;
@@ -152,7 +153,11 @@ function doAct(data) {
   });
 }
 
-process.on("uncaughtException", function(err) {
+process.on("uncaughtException", (err) => {
   var text = "ERR (uncaughtException): " + util.inspect(err);
   logger.log(text);
+});
+
+process.on("disconnect", () => {
+   process.exit();
 });

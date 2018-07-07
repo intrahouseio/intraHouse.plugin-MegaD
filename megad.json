@@ -116,6 +116,11 @@
         "type": "string"
     },
     {
+        "name": "fullurl",
+        "note": "Выполнить запрос (в т.ч. на другой MegaD)",
+        "type": "string"
+    },
+    {
         "name": "state",
         "note": "Установить состояние каналов",
         "type": "string"
