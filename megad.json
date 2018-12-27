@@ -59,7 +59,7 @@
       "type": "500",
       "cl": "ActorD"
     },
-    "Meter": { "cl": "Meter" } 
+    "Meter": { "cl": "Meter" }
   },
 
   "chpattern": [
@@ -67,15 +67,15 @@
       "name": "desc",
       "note": "Тип порта",
       "type": "droplist",
-      "data":[
-        {"id":"DI", "name":"DI - Digital Input (IN)"},
-        {"id":"DO", "name":"DO - Digital Output(OUT)"},
-        {"id":"AI", "name":"AI - Analog Input (ADC, Dsen)"},
-        {"id":"AO", "name":"AO - Analog Output (PWM)"},
-        {"id":"Meter", "name":"Meter - (IN)"}
+      "data": [
+        { "id": "DI", "name": "DI - Digital Input (IN)" },
+        { "id": "DO", "name": "DO - Digital Output(OUT)" },
+        { "id": "AI", "name": "AI - Analog Input (ADC, Dsen)" },
+        { "id": "AO", "name": "AO - Analog Output (PWM)" },
+        { "id": "Meter", "name": "Meter - (IN)" }
       ]
     },
- 
+
     {
       "name": "reqsek",
       "note": "Период опроса(сек), 0-не опрашивать",
@@ -84,15 +84,31 @@
     {
       "name": "req",
       "note": "Строка запроса состояния",
-      "type": "string",
-      "visible":"data.reqsek>0"
+      "type": "string"
     },
     {
-        "name": "weight",
-        "note": "Вес импульса счетчика",
-        "type": "string",
-        "visible":"data.desc==\"Meter\""
-      }
+      "name": "weight",
+      "note": "Вес импульса счетчика",
+      "type": "string",
+      "visible": "data.desc==\"Meter\""
+    },
+    {
+        "name": "restore",
+        "note": "Восстанавливать выход при перезагрузке контроллера",
+        "type": "cb",
+        "visible": "data.desc==\"DO\""
+    },
+    {
+      "name": "usescript",
+      "note": "Использовать функцию обработки при получении данных от контроллера",
+      "type": "cb"
+    },
+    {
+      "name": "script",
+      "note": "Функция обработки значения",
+      "type": "TEXTAREA",
+      "visible": "data.usescript"
+    }
   ],
 
   "chdefault": {
@@ -100,10 +116,10 @@
     "desc": "DI",
     "reqsek": 0,
     "req": "/%pwd%/?pt=%adr%&cmd=get",
-    "dn":"",
-    "weight":1
+    "dn": "",
+    "weight": 1
   },
-  
+
   "extrapattern": [
     {
       "name": "request",
@@ -111,31 +127,28 @@
       "type": "string"
     },
     {
-        "name": "response",
-        "note": "Передать в ответ",
-        "type": "string"
+      "name": "response",
+      "note": "Передать в ответ",
+      "type": "string"
     },
     {
-        "name": "fullurl",
-        "note": "Выполнить запрос (в т.ч. на другой MegaD)",
-        "type": "string"
+      "name": "fullurl",
+      "note": "Выполнить запрос (в т.ч. на другой MegaD)",
+      "type": "string"
     },
     {
-        "name": "state",
-        "note": "Установить состояние каналов",
-        "type": "string"
+      "name": "state",
+      "note": "Установить состояние каналов",
+      "type": "string"
     }
   ],
 
   "extradefault": {
     "request": "/megad?pt=1",
     "response": "7:2",
-    "state":"1=ON&7=TOGGLE",
-    "fullurl":""
+    "state": "1=ON&7=TOGGLE",
+    "fullurl": ""
   },
-  
 
-  "actions": [
-    {}
-  ]
+  "actions": [{}]
 }

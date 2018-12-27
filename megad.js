@@ -16,7 +16,6 @@ const plugin = require("./lib/plugin");
 let step = 0;
 plugin.unitId = process.argv[2];
 
-
 logger.log("MegaD plugin has started.", "start");
 next();
 
@@ -56,7 +55,8 @@ function next() {
 }
 
 function getTable(name) {
-  process.send({ type: "get", tablename: name + "/" + plugin.unitId });
+  // process.send({ type: "get", tablename: name + "/" + plugin.unitId });
+  process.send({ type: "get", tablename: name });
 }
 
 /**
@@ -65,31 +65,36 @@ function getTable(name) {
  *   В каждом цикле проверяется только первый элемент
  **/
 function runOutReq() {
-  let item = plugin.getNextReq();
-  if (item) {
-    let url = plugin.reqarr[item.index].url;
-    let adr = plugin.reqarr[item.index].adr;
+  let req = plugin.getNextReq();
+  if (req) {
+    httpclient.httpGet(req, logger, body => {
+      body = String(body);
+      if (body.indexOf("busy") >= 0) {
+        plugin.resetTimer(req.index, 2); // Повторить через 2 сек
+      } else {
+        let payload;
+        if (req.passBack) {
+          // была отправлена команда - если получили 200 - можно установить значение
+          payload = req.passBack;
+        } else {
+          // опрос
+          payload = ut.parse(
+            body,
+            req.url,
+            req.adr ? ut.portNumber(req.adr) : "",
+            plugin.prefun
+          );
+        }
 
-    httpclient.httpGet(
-      {
-        url,
-        adr,
-        host: plugin.params.host,
-        port: plugin.params.port,
-        stopOnError: true
-      },
-      logger,
-      body => {
-        plugin.processSendData(
-          ut.parse(String(body), url, adr ? ut.portNumber(adr) : "")
-        );
+        if (req.index >= 0) plugin.resetTimer(req.index);
+        if (payload) plugin.processSendData(payload);
       }
-    );
+    });
   }
 }
 
 /** ****************************** Входящие от IH ************************************/
-process.on("message", (message) => {
+process.on("message", message => {
   if (!message) return;
 
   if (typeof message == "string") {
@@ -121,6 +126,10 @@ function parseMessageFromServer(message) {
       doAct(message.data);
       break;
 
+    case "command":
+      doCommand(message);
+      break;
+
     case "debug":
       if (message.mode) logger.setDebug(message.mode);
       break;
@@ -129,35 +138,58 @@ function parseMessageFromServer(message) {
   }
 }
 
+function doCommand(message) {
+  logger.log("command: " + util.inspect(message.command));
+  if (!message.command) return;
+
+  let command = message.command;
+
+  let url;
+  let passBack;
+  if (typeof command == "string") {
+    url = command;
+  } else if (command.url) {
+    url = command.url;
+
+    if (command.onResponse) {
+      if (typeof command.onResponse == "object") {
+        passBack = util.isArray(command.onResponse)
+          ? command.onResponse
+          : [command.onResponse];
+      } else logger.log("command.onResponse - expected object! Skipped");
+    }
+  }
+
+  if (!url) {
+    logger.log("ERROR message with type:command. expected url!");
+    return;
+  }
+  plugin.addActReq(url, passBack);
+}
+
 // data = [{id:adr, command:on/off/set, value:1}]
 function doAct(data) {
   if (!data || !util.isArray(data) || data.length <= 0) return;
 
+  logger.log("act: " + util.inspect(data));
   data.forEach(item => {
     if (item.id && item.command) {
       let value = item.command == "on" ? 1 : 0;
 
-      httpclient.httpGet(
-        {
-          url: plugin.doCmd + item.id + ":" + value,
-          host: plugin.params.host,
-          port: plugin.params.port,
-          stopOnError: false
-        },
-        logger
-      );
+      plugin.addActReq(plugin.doCmd + item.id + ":" + value, [
+        { id: item.id, value }
+      ]);
 
-      // и на сервер передать что сделали
-      plugin.processSendData([{ id: item.id, value }]);
+      // logger.log('after addActReq plugin.timers='+util.inspect(plugin.timers));
     }
   });
 }
 
-process.on("uncaughtException", (err) => {
+process.on("uncaughtException", err => {
   var text = "ERR (uncaughtException): " + util.inspect(err);
   logger.log(text);
 });
 
 process.on("disconnect", () => {
-   process.exit();
+  process.exit();
 });
