@@ -46,7 +46,7 @@ function next() {
       httpserver.start(plugin, logger);
 
       // Запуск Основного цикла опроса
-      setInterval(runOutReq, 200);
+      setInterval(runOutReq, (plugin.params.qTimeout>0) ? plugin.params.qTimeout : 200);
       step = 4;
       break;
 
