@@ -175,15 +175,19 @@ function doAct(data) {
 
   logger.log("act: " + util.inspect(data));
   data.forEach(item => {
+    plugin.addAct(item);
+    /*  
     if (item.id && item.command) {
       let value = item.command == "on" ? 1 : 0;
-
+      
+      
       plugin.addActReq(plugin.doCmd + item.id + ":" + value, [
         { id: item.id, value }
       ]);
-
-      // logger.log('after addActReq plugin.timers='+util.inspect(plugin.timers));
+     
     }
+     */
+      
   });
 }
 
