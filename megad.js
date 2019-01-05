@@ -66,6 +66,7 @@ function getTable(name) {
  **/
 function runOutReq() {
   let req = plugin.getNextReq();
+ 
   if (req) {
     httpclient.httpGet(req, logger, body => {
       body = String(body);
@@ -82,7 +83,8 @@ function runOutReq() {
             body,
             req.url,
             req.adr ? ut.portNumber(req.adr) : "",
-            plugin.prefun
+            plugin.prefun,
+            req.adr
           );
         }
 
