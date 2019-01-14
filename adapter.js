@@ -56,8 +56,13 @@ module.exports = {
 
     function countIt(dobj, readMapItem) {
       let weight = readMapItem.weight > 0 ? readMapItem.weight : 1;
+
       let aval = isNaN(dobj.aval) ? 1 : Number(dobj.aval);
-      return aval + 1 * weight;
+
+      // Результат округлить до не более чем 6 знаков после запятой. Меньше нельзя - вес может быть очень маленький
+      aval +=  1 * weight;
+      aval = aval.toString().length > 15 ? (Math.round(aval * 1000000) / 1000000) : aval;
+      return aval;
     }
-    }
+  }
 };
