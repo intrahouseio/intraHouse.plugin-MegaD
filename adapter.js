@@ -24,7 +24,7 @@ module.exports = {
     function processOne(item) {
       let dobj = getDevice(item);
       if (!dobj) return "";
-
+  
       // Если число - то счетчик нужно исключить, т к в общем опросе он передает 1!
       if (dobj.cl == "Meter") {
         if (item.value == "CNT" || item.value == "COUNT") {
@@ -32,7 +32,10 @@ module.exports = {
         } else delete item.value;
       } else if (item.value == "TG" || item.value == "TOGGLE") {
         item.value = toggleIt(dobj);
+      } else if (dobj.cl == "ActorA") {
+          item.value = transformAnalog(dobj, readMap.get(item.id), item.value);
       }
+
       return item.value != undefined ? item : "";
     }
 
@@ -41,6 +44,34 @@ module.exports = {
         let dn = readMap.get(item.id).dn;
         return dn ? houser.getDevobj(dn) : "";
       }
+    }
+
+    function transformAnalog(dobj, readMapItem, value) {
+      let result = value;
+      if (dobj.isRGB()) {
+        result = hexToArray(value);
+      } else {
+        let ks = readMapItem.ks > 0 ? readMapItem.ks : 1;
+        let kh = readMapItem.kh > 0 ? readMapItem.kh : 1;
+        if (ks != kh) {
+          // result = Math.round((value * ks * 100) / kh) / 100; // 255/255*100
+          result = Math.round((value * ks) / kh); // 255/255*100
+        }
+      }
+      return result;
+    }
+
+    function hexToArray(value) {
+        let result = value;
+        if (value && value.length>5) {
+            result = [];
+            result.push(parseInt(value.substr(0,2),16));
+            result.push(parseInt(value.substr(2,2),16));
+            result.push(parseInt(value.substr(4,2),16));
+            result.push(0);
+            result.push(0);
+        }
+        return result;
     }
 
     // Переключить состояние устройства, а мега сама переключит
@@ -60,8 +91,11 @@ module.exports = {
       let aval = isNaN(dobj.aval) ? 1 : Number(dobj.aval);
 
       // Результат округлить до не более чем 6 знаков после запятой. Меньше нельзя - вес может быть очень маленький
-      aval +=  1 * weight;
-      aval = aval.toString().length > 15 ? (Math.round(aval * 1000000) / 1000000) : aval;
+      aval += 1 * weight;
+      aval =
+        aval.toString().length > 15
+          ? Math.round(aval * 1000000) / 1000000
+          : aval;
       return aval;
     }
   }

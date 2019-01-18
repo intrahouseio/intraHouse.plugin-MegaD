@@ -106,6 +106,24 @@
       "visible": "data.desc==\"Meter\""
     },
     {
+        "name": "set",
+        "note": "Команда управления",
+        "type": "string",
+        "visible": "data.desc==\"AO\""
+    },
+    {
+        "name": "ks",
+        "note": "Значения логического уровня 0-",
+        "type": "number",
+        "visible": "data.desc==\"AO\""
+    },
+    {
+        "name": "kh",
+        "note": "Значения физического уровня 0-",
+        "type": "number",
+        "visible": "data.desc==\"AO\""
+    },
+    {
         "name": "restore",
         "note": "Восстанавливать выход при перезагрузке контроллера",
         "type": "cb",
@@ -129,7 +147,9 @@
     "desc": "DI",
     "reqsek": 0,
     "req": "/%pwd%/?pt=%adr%&cmd=get",
-    "dn": "",
+    "set": "",
+    "ks": "100",
+    "kh": "255",
     "weight": 1
   },
 
