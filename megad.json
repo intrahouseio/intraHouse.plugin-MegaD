@@ -84,7 +84,7 @@
         { "id": "DI", "name": "DI - Digital Input (IN)" },
         { "id": "DO", "name": "DO - Digital Output(OUT)" },
         { "id": "AI", "name": "AI - Analog Input (ADC, Dsen)" },
-        { "id": "AO", "name": "AO - Analog Output (PWM)" },
+        { "id": "AO", "name": "AO - Analog Output" },
         { "id": "Meter", "name": "Meter - (IN)" }
       ]
     },
@@ -173,13 +173,20 @@
       "name": "state",
       "note": "Установить состояние каналов",
       "type": "string"
-    }
+    },
+    {
+        "name": "startscene",
+        "note": "Запустить сценарий",
+        "type": "droplist",
+        "data": "listfromworkscenes" 
+      }
   ],
 
   "extradefault": {
     "request": "/megad?pt=1",
     "response": "7:2",
     "state": "1=ON&7=TOGGLE",
+    "startscene":"",
     "fullurl": ""
   },
 

@@ -166,6 +166,7 @@ function doCommand(message) {
     logger.log("ERROR message with type:command. expected url!");
     return;
   }
+  url = ut.doSubstitute(url, {pwd: plugin.params.pwd});
   plugin.addActReq(url, passBack);
 }
 
@@ -173,21 +174,9 @@ function doCommand(message) {
 function doAct(data) {
   if (!data || !util.isArray(data) || data.length <= 0) return;
 
-  logger.log("act: " + util.inspect(data));
+  // logger.log("act: " + util.inspect(data));
   data.forEach(item => {
     plugin.addAct(item);
-    /*  
-    if (item.id && item.command) {
-      let value = item.command == "on" ? 1 : 0;
-      
-      
-      plugin.addActReq(plugin.doCmd + item.id + ":" + value, [
-        { id: item.id, value }
-      ]);
-     
-    }
-     */
-      
   });
 }
 
