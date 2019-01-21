@@ -179,6 +179,12 @@
         "note": "Запустить сценарий",
         "type": "droplist",
         "data": "listfromworkscenes" 
+      },
+      {
+        "name": "arg",
+        "note": "Параметр сценария",
+        "type": "string",
+        "visible": "data.startscene"
       }
   ],
 
@@ -187,6 +193,7 @@
     "response": "7:2",
     "state": "1=ON&7=TOGGLE",
     "startscene":"",
+    "arg":"",
     "fullurl": ""
   },
 
