@@ -148,8 +148,8 @@
     "reqsek": 0,
     "req": "/%pwd%/?pt=%adr%&cmd=get",
     "set": "",
-    "ks": "100",
-    "kh": "255",
+    "ks": 0,
+    "kh": 0,
     "weight": 1
   },
 
@@ -158,6 +158,11 @@
       "name": "request",
       "note": "Входящее от контроллера MegaD",
       "type": "string"
+    },
+    {
+      "name": "mcp",
+      "note": "Расширенный порт (одновременная сработка датчиков)",
+      "type": "cb"
     },
     {
       "name": "response",
@@ -190,6 +195,7 @@
 
   "extradefault": {
     "request": "/megad?pt=1",
+    "mcp":0,
     "response": "7:2",
     "state": "1=ON&7=TOGGLE",
     "startscene":"",

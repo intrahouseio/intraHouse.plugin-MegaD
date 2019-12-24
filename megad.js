@@ -76,7 +76,10 @@ function runOutReq() {
         let payload;
         if (req.passBack) {
           // была отправлена команда - если получили 200 - можно установить значение
-          payload = req.passBack;
+          if (req.passBack.raw) {
+       
+            process.send({ type: "command", uuid:req.passBack.uuid, payload:body, response:1 });
+          } else payload = req.passBack;
         } else {
           // опрос
           payload = ut.parse(
@@ -94,6 +97,7 @@ function runOutReq() {
     });
   }
 }
+
 
 /** ****************************** Входящие от IH ************************************/
 process.on("message", message => {
@@ -154,7 +158,10 @@ function doCommand(message) {
     url = command.url;
 
     if (command.onResponse) {
-      if (typeof command.onResponse == "object") {
+      if (command.onResponse == "raw") {
+        passBack = {raw:true, uuid:message.uuid, url, type:'command'};
+
+      } else if (typeof command.onResponse == "object") {
         passBack = util.isArray(command.onResponse)
           ? command.onResponse
           : [command.onResponse];
