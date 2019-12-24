@@ -167,12 +167,14 @@
     {
       "name": "response",
       "note": "Передать в ответ",
-      "type": "string"
+      "type": "string",
+      "visible": "!data.mcp"
     },
     {
       "name": "fullurl",
       "note": "Выполнить запрос (в т.ч. на другой MegaD)",
-      "type": "string"
+      "type": "string",
+      "visible": "!data.mcp"
     },
     {
       "name": "state",
@@ -183,7 +185,7 @@
         "name": "startscene",
         "note": "Запустить сценарий",
         "type": "droplist",
-        "data": "listfromworkscenes" 
+        "data": "listfromworkscenes"
       },
       {
         "name": "arg",
