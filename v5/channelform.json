@@ -1,0 +1,96 @@
+{
+  "grid": [
+    { "id": "p2", "xs": 6, "class": "main", "table": "devhard" },
+    { "id": "p3", "xs": 6, "class": "main", "table": "devhard" },
+    { "id": "p4", "xs": 12, "class": "main", "table": "devhard", "height": 250, "hide": "!data.p3.usescript" },
+    { "id": "p9", "xs": 12, "class": "main", "table": "onechannelrtTable" }
+  ],
+  "spacing": 4,
+
+  "p2": [
+    { "prop": "chan", "title": "$Channel", "type": "input" },
+    {
+      "prop": "req",
+      "title": "Строка запроса состояния",
+      "type": "input"
+    },
+
+    {
+      "prop": "reqsek",
+      "title": "Период опроса(сек), 0-не опрашивать",
+      "type": "number"
+    },
+    {
+      "prop": "desc",
+      "title": "Тип порта",
+      "type": "droplist",
+      "data": [
+        { "id": "DI", "title": "DI - Digital Input (IN)" },
+        { "id": "DO", "title": "DO - Digital Output(OUT)" },
+        { "id": "AI", "title": "AI - Analog Input (ADC, Dsen)" },
+        { "id": "AO", "title": "AO - Analog Output" },
+        { "id": "Meter", "title": "Meter - (IN)" }
+      ]
+    },
+    {
+      "prop": "weight",
+      "title": "Вес импульса счетчика",
+      "type": "input",
+      "hide": "data.p2.desc.id!=\"Meter\""
+    },
+    {
+      "prop": "ks",
+      "title": "Значения логического уровня 0-",
+      "type": "input",
+      "hide": "data.p2.desc.id!=\"AO\""
+    },
+    {
+      "prop": "kh",
+      "title": "Значения физического уровня 0-",
+      "type": "input",
+      "hide": "data.p2.desc.id!=\"AO\""
+    }
+  ],
+  "p3": [
+    { "prop": "w", "title": "Запись", "type": "cb" },
+    {
+      "prop": "set",
+      "title": "Команда управления для AO",
+      "type": "input",
+      "hide": "!data.p3.w || data.p2.desc.id!=\"AO\""
+    },
+
+    {
+      "prop": "restore",
+      "title": "Восстанавливать выход при перезагрузке контроллера",
+      "type": "cb",
+      "hide": "data.p2.desc.id!=\"DO\""
+    },
+
+    {
+      "prop": "writeButton",
+      "title": "Отправить команду",
+      "type": "button",
+      "command": "writetochannel",
+      "param": "write",
+      "hide": "!data.p3.w"
+    },
+    {
+      "prop": "usescript",
+      "title": "Использовать функцию обработки при получении данных от контроллера",
+      "type": "cb"
+    }
+  ],
+
+  "p4": [
+    {
+      "prop": "script",
+      "title": "Функция обработки значения",
+      "type": "script"
+    }
+  ],
+  "p9": [
+    { "prop": "realtime_chan_str", "title": "Канал", "type": "text" },
+    { "prop": "realtime_dev_str", "title": "Устройство", "type": "text" }
+  ]
+}

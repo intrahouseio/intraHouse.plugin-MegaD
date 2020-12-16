@@ -1,0 +1,61 @@
+{
+  "grid": [{ "id": "p1", "xs": 12, "class": "main", "table": "unitextTable", "height": "fill" }],
+  "spacing": 10,
+  "breadcrumbs": { "tree": "plugins" },
+
+  "p1": [
+    {
+      "title": "",
+      "type": "table",
+      "prop": "unitextTable",
+      "popupenable": true,
+
+      "columns": [
+        {
+          "prop": "request",
+          "title": "Входящее от контроллера MegaD",
+          "type": "input",
+          "width": 250
+        },
+        {
+          "prop": "mcp",
+          "title": "MCP Расширенный порт (одновременная сработка датчиков)",
+          "type": "cb",
+          "width": 100
+        },
+        {
+          "prop": "response",
+          "title": "Передать в ответ",
+          "type": "input",
+          "hide": "data.mcp",
+          "width": 150
+        },
+        {
+          "prop": "fullurl",
+          "title": "Выполнить запрос (в т.ч. на другой MegaD)",
+          "type": "input",
+          "hide": "data.mcp",
+          "width": 150
+        },
+        {
+          "prop": "state",
+          "title": "Установить состояние каналов",
+          "type": "input",
+          "width": 150
+        },
+        {
+          "prop": "startscene",
+          "title": "Запустить сценарий",
+          "type": "droplist",
+          "data": [{ "id": "-", "title": "-" }]
+        },
+        {
+          "prop": "arg",
+          "title": "Параметр сценария",
+          "type": "input",
+          "hide": "!data.startscene"
+        }
+      ]
+    }
+  ]
+}

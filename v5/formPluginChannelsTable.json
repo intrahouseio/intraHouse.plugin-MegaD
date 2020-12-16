@@ -1,0 +1,33 @@
+{
+  "grid": [
+    { "id": "p1", "xs": 12, "class": "main", "table":"unitchannelsTable", "height":"fill" }
+  ],
+  "spacing": 10,
+  "breadcrumbs": { "tree": "plugins" },
+
+  "p1": [
+    { "prop": "header", "title": "Каналы", "type": "header", "size":"h6"  },
+    {
+      "title": "Channels",
+      "type": "table",
+      "prop": "unitchannelsTable",
+      "popupenable":false,
+      "columns": [
+     
+        { "prop": "chan", "title": "Канал",  "type": "link", "command":"forward",  "width": 150 },
+        { "prop": "desc", "title": "Тип",  "type": "text", "width": 40 },
+        { "prop": "req","title": "Запрос","type": "text", "width": 250},
+        { "prop": "reqsek","title": "Период опроса","type": "number", "width": 64},
+        { "prop": "w", "title": "Запись",  "type": "cb", "width": 64, "hide":"!data.desc || data.desc.substr(0,1)!='D'" },
+        { "prop": "restore", "title": "Восстанавливать",  "type": "cb", "width": 64 },
+        { "prop": "did", "title": "$Device",  "type": "link", "command":"forward", "width": 250  },
+        { "prop": "prop", "title": "$DeviceProperty", "type": "text",  "width": 100 },
+        { "prop": "realtime_chan_val", "title": "Канал: значение", "type": "text",  "width": 64 },
+        { "prop": "realtime_chan_ts", "title": "Канал: время", "type": "text",  "width": 150 },
+        { "prop": "realtime_dev_val", "title": "Устройство: значение", "type": "text",  "width": 64 },
+        { "prop": "realtime_dev_ts", "title": "Устройство: время", "type": "text",  "width": 150 },
+        { "prop": "realtime_dev_err", "title": "Устройство: ошибка", "type": "text",  "width": 150 }
+      ]
+    }
+  ]
+}

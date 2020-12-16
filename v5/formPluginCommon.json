@@ -1,0 +1,76 @@
+{
+  "grid": [
+    { "id": "p1", "xs": 6, "class": "main", "table": "units" },
+    { "id": "p2", "xs": 6, "class": "main", "table": "units" },
+    { "id": "p9", "xs": 12, "class": "main", "table": "unitsTreeTable", "height": "fill" }
+  ],
+
+
+  "spacing": 10,
+  "breadcrumbs": { "tree": "plugins" },
+
+  "p1": [
+    {
+      "prop": "host",
+      "title": "IP контроллера",
+      "type": "input"
+    },
+    {
+      "prop": "port",
+      "title": "Порт контроллера",
+      "type": "input"
+    },
+    {
+      "prop": "lport",
+      "title":"Слушающий порт на сервере",
+      "type": "input"
+    },
+    {
+      "prop": "pwd",
+      "title": "Пароль",
+      "type": "input",
+      "val": "sec"
+    }
+  ],
+  "p2": [
+    {
+      "prop": "allreq",
+      "title": "Запрос состояния всех устройств",
+      "type": "input"
+    },
+    {
+      "prop": "allreqsek",
+      "title": "Период опроса(сек), 0-только при старте",
+      "type": "number"
+    },
+    {
+        "prop": "stCurrentTime",
+        "title": "Отправлять время на контроллер",
+        "type": "cb",
+        "val": 0
+    },
+    {
+        "prop": "qTimeout",
+        "title": "Интервал отправки запросов (мсек)",
+        "type": "number",
+        "val": 200
+    }
+  ],
+  "p9": [
+    {
+      "title": "",
+      "type": "table",
+      "prop": "unitsTreeTable",
+
+      "columns": [
+        { "prop": "name", "title": "ID", "type": "text", "width": 150 },
+        { "prop": "state", "title": "Состояние", "type": "text", "width": 150 },
+        { "prop": "laststart", "title": "Время запуска", "type": "text", "width": 150 },
+        { "prop": "laststop", "title": "Время останова", "type": "text", "width": 150 },
+        { "prop": "uptime", "title": "Uptime", "type": "text", "width": 150 },
+        { "prop": "error", "title": "Ошибка", "type": "text", "width": 250 }
+      ]
+    }
+  ]
+
+}
