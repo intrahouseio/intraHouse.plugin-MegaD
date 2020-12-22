@@ -13,47 +13,52 @@
     {
       "prop": "host",
       "title": "IP контроллера",
-      "type": "input"
+      "type": "input",
+      "default":"127.0.0.1"
     },
     {
       "prop": "port",
       "title": "Порт контроллера",
-      "type": "input"
+      "type": "input",
+      "default":"80"
     },
     {
       "prop": "lport",
       "title":"Слушающий порт на сервере",
-      "type": "input"
+      "type": "input",
+      "default":"8081"
     },
     {
       "prop": "pwd",
       "title": "Пароль",
-      "type": "input",
-      "val": "sec"
+      "type": "password",
+      "default":"sec"
     }
   ],
   "p2": [
     {
       "prop": "allreq",
       "title": "Запрос состояния всех устройств",
-      "type": "input"
+      "type": "input",
+      "default":"/%pwd%/?cmd=all"
     },
     {
       "prop": "allreqsek",
       "title": "Период опроса(сек), 0-только при старте",
-      "type": "number"
+      "type": "input",
+      "default":0
     },
     {
         "prop": "stCurrentTime",
         "title": "Отправлять время на контроллер",
         "type": "cb",
-        "val": 0
+        "default":0
     },
     {
         "prop": "qTimeout",
         "title": "Интервал отправки запросов (мсек)",
         "type": "number",
-        "val": 200
+        "default":0
     }
   ],
   "p9": [

@@ -18,16 +18,16 @@
           "width": 250
         },
         {
-          "prop": "mcp",
-          "title": "MCP Расширенный порт (одновременная сработка датчиков)",
-          "type": "cb",
-          "width": 100
-        },
-        {
           "prop": "response",
           "title": "Передать в ответ",
           "type": "input",
           "hide": "data.mcp",
+          "width": 80
+        },
+        {
+          "prop": "state",
+          "title": "Установить состояние каналов",
+          "type": "input",
           "width": 150
         },
         {
@@ -38,22 +38,24 @@
           "width": 150
         },
         {
-          "prop": "state",
-          "title": "Установить состояние каналов",
-          "type": "input",
-          "width": 150
+          "prop": "mcp",
+          "title": "MCP (одновременная сработка)",
+          "type": "cb",
+          "width": 100
         },
         {
           "prop": "startscene",
           "title": "Запустить сценарий",
           "type": "droplist",
-          "data": [{ "id": "-", "title": "-" }]
+          "data": [{ "id": "-", "title": "-" }],
+          "width": 100
         },
         {
           "prop": "arg",
           "title": "Параметр сценария",
           "type": "input",
-          "hide": "!data.startscene"
+          "hide": "!data.startscene",
+          "width": 100
         }
       ]
     }
