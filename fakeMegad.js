@@ -38,11 +38,16 @@ function start() {
         case '/sec/?pt=1&cmd=get':
         answer = 'ON';
         break;
+       case '/sec/?pt=30&cmd=get':
+          answer = 'temp:2.38/press:754.86/hum:102.400';
+          break;
 
         case '/sec/?pt=32&cmd=get':
         answer = 'ON;OFF;ON;OFF;ON;';
         break;
-        
+        case '/sec/?pt=33&cmd=get':
+          answer = '42';
+          break;
         default: answer='';
     }
 
