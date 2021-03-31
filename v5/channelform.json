@@ -59,11 +59,12 @@
       "type": "input",
       "hide": "data.p3.reqsek == 0"
     },
+    { "prop": "calc", "title": "$Devhard_Calc", "type": "input" },
     {
       "prop": "usescript",
       "title": "Использовать функцию обработки при получении данных от контроллера",
       "type": "cb",
-      "hide": "data.p3.reqsek == 0"
+      "hide": "1==1"
     }
   ],
   "p4": [
