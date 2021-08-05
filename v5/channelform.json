@@ -68,6 +68,7 @@
     }
   ],
   "p4": [
+    { "prop": "r", "title": "Чтение", "type": "cb" },
     { "prop": "w", "title": "Запись", "type": "cb" },
     {
       "prop": "set",
