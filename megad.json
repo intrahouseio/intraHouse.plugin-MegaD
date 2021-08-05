@@ -4,6 +4,7 @@
   "gendevices": 0,
   "module": "megad.js",
   "restartOnChannelsChange": 1,
+  "extratab":1,
   "params": [
     {
       "name": "host",
