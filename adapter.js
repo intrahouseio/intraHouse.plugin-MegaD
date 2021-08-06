@@ -110,7 +110,8 @@ module.exports = {
       if (!readItem) {
         return item;
       }
-      const dobj = readItem.did && holder.devSet[readItem.did] ? holder.devSet[readItem.did] : '';
+      const dobj = readItem && readItem.did && holder.devSet[readItem.did] ? holder.devSet[readItem.did] : '';
+      if (!dobj) return;
 
       // Если число - то счетчик нужно исключить, т к в общем опросе он передает 1!
       if (readItem.desc == 'Meter') {
