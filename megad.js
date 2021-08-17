@@ -17,6 +17,9 @@ let step = 0;
 plugin.unitId = process.argv[2];
 
 logger.log("MegaD plugin has started.", "start");
+sendProcessInfo();
+setInterval(sendProcessInfo, 10000);
+
 next();
 
 function next() {
@@ -195,3 +198,12 @@ process.on("uncaughtException", err => {
 process.on("disconnect", () => {
   process.exit();
 });
+
+
+function sendProcessInfo() {
+  const mu = process.memoryUsage();
+  const memrss = Math.floor(mu.rss/1024)
+  const memheap = Math.floor(mu.heapTotal/1024)
+  const memhuse = Math.floor(mu.heapUsed/1024)
+  process.send({type:'procinfo', data:{memrss,memheap, memhuse }});
+}
