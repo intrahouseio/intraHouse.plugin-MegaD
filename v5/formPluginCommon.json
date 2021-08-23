@@ -1,7 +1,8 @@
 {
   "grid": [
-    { "id": "p1", "xs": 6, "class": "main", "table": "units" },
-    { "id": "p2", "xs": 6, "class": "main", "table": "units" },
+    { "id": "p1", "xs": 4, "class": "main", "table": "units" },
+    { "id": "p2", "xs": 4, "class": "main", "table": "units" },
+    { "id": "p3", "xs": 4, "class": "main", "table": "units" },
     { "id": "p9", "xs": 12, "class": "main", "table": "unitsTreeTable", "height": "fill" }
   ],
 
@@ -60,6 +61,17 @@
         "type": "number",
         "default":0
     }
+  ],
+
+  "p3": [
+    {
+      "prop": "restarttime",
+      "title": "$Unit_Restarttime",
+      "type": "input",
+      "default": 5
+    },
+    { "prop": "loglevel", "title": "$LogLevel", "type": "droplist", "data": "loglevelList" },
+    { "prop": "txt", "title": "$Comment", "type": "input" }
   ],
   "p9": [
     {
