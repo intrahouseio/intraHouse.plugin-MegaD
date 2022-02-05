@@ -47,7 +47,7 @@
           "prop": "startscene",
           "title": "Запустить сценарий",
           "type": "droplist",
-          "data": [{ "id": "-", "title": "-" }],
+          "data": "sceneList",
           "width": 100
         },
         {
