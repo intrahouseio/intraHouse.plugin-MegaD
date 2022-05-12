@@ -11,6 +11,7 @@
 
   "p2": [
     { "prop": "chan", "title": "$Channel", "type": "input" },
+    { "prop": "name", "title": "Имя", "type": "input" },
     {
       "prop": "desc",
       "title": "Тип порта",
